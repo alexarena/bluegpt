@@ -1,0 +1,25 @@
+import { z } from "npm:zod";
+
+export const bodySchema = z.object({
+  accountEmail: z.string(),
+  content: z.string(),
+  is_outbound: z.boolean(),
+  status: z.string(),
+  error_code: z.null(),
+  error_message: z.null(),
+  message_handle: z.string(),
+  date_sent: z.string(),
+  date_updated: z.string(),
+  from_number: z.string(),
+  number: z.string(),
+  to_number: z.string(),
+  was_downgraded: z.null(),
+  plan: z.string(),
+  media_url: z.string(),
+  message_type: z.string(),
+  group_id: z.string(),
+  participants: z.array(z.unknown()),
+  send_style: z.string(),
+  opted_out: z.boolean(),
+  error_detail: z.null(),
+});
