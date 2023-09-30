@@ -9,8 +9,9 @@ import { bodySchema } from "./sendblueSchema.ts";
 
 const env = await load();
 function getEnv(key: string) {
-  if (typeof env[key] === "string") {
-    return env[key];
+  const v = Deno.env.get(key) || env[key];
+  if (typeof v === "string") {
+    return v;
   }
   throw new Error(`Missing env var ${key}`);
 }
