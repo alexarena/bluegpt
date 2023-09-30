@@ -1,4 +1,4 @@
-## BlueGPT
+## BlueGPT 🤖
 
 _Talk with AI using iMessage_
 
