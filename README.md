@@ -19,4 +19,4 @@ The following environment variables must be specified (you can use a .env file i
 
 ## Why?
 
-¯\_(ツ)\_/¯
+¯\\\_(ツ)\_/¯
