@@ -1,4 +1,3 @@
-import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
 import { OpenAIStream } from "npm:ai";
 import {
   ChatCompletionRequestMessage,
@@ -6,29 +5,21 @@ import {
   OpenAIApi,
 } from "npm:openai-edge";
 import { bodySchema } from "./sendblueSchema.ts";
-
-const env = await load();
-function getEnv(key: string) {
-  const v = Deno.env.get(key) || env[key];
-  if (typeof v === "string") {
-    return v;
-  }
-  throw new Error(`Missing env var ${key}`);
-}
-
-const OPENAI_API_KEY = getEnv("OPENAI_API_KEY");
-const APP_URL = getEnv("APP_URL");
-const SENDBLUE_API_KEY = getEnv("SENDBLUE_API_KEY");
-const SENDBLUE_API_SECRET = getEnv("SENDBLUE_API_SECRET");
-const SENDBLUE_SIGNING_SECRET = getEnv("SENDBLUE_SIGNING_SECRET");
-const YOUR_NUMBER = getEnv("YOUR_NUMBER");
+import {
+  OPENAI_API_KEY,
+  SENDBLUE_API_KEY,
+  SENDBLUE_API_SECRET,
+  YOUR_NUMBER,
+  APP_URL,
+  SENDBLUE_SIGNING_SECRET,
+} from "./envLoader.ts";
 
 const config = new Configuration({
   apiKey: OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(config);
 
-function iMessage(content: string) {
+function iMessage(to: string, content: string) {
   return fetch(`https://api.sendblue.co/api/send-message`, {
     headers: new Headers({
       "sb-api-key-id": SENDBLUE_API_KEY,
@@ -37,7 +28,7 @@ function iMessage(content: string) {
     }),
     method: "POST",
     body: JSON.stringify({
-      number: YOUR_NUMBER,
+      number: to,
       content,
       // send_style: "invisible",
       // media_url: 'https://picsum.photos/200/300.jpg',
@@ -46,7 +37,7 @@ function iMessage(content: string) {
   });
 }
 
-function startTyping() {
+function startTyping(to: string) {
   return fetch(`https://api.sendblue.co/api/send-typing-indicator`, {
     headers: new Headers({
       "sb-api-key-id": SENDBLUE_API_KEY,
@@ -55,7 +46,7 @@ function startTyping() {
     }),
     method: "POST",
     body: JSON.stringify({
-      number: YOUR_NUMBER,
+      number: to,
     }),
   });
 }
@@ -67,8 +58,8 @@ const chatHistory: ChatCompletionRequestMessage[] = [
   },
 ];
 
-async function startRespondingToChat(content: string) {
-  await startTyping();
+async function startRespondingToChat(to: string, content: string) {
+  await startTyping(to);
   chatHistory.push({
     role: "user",
     content,
@@ -84,7 +75,7 @@ async function startRespondingToChat(content: string) {
     },
     onCompletion: async (completion) => {
       chatHistory.push({ content: completion, role: "assistant" });
-      await iMessage(completion);
+      await iMessage(to, completion);
       console.log("\n");
       console.log(chatHistory);
     },
@@ -116,12 +107,14 @@ async function handler(req: Request): Promise<Response> {
       throw new Error("Invalid request");
     }
 
-    if (body.is_outbound === false && body.from_number !== YOUR_NUMBER) {
-      throw new Error("Got a message from an unexpected number...");
+    if (YOUR_NUMBER) {
+      if (body.is_outbound === false && body.from_number !== YOUR_NUMBER) {
+        throw new Error("Got a message from an unexpected number...");
+      }
     }
 
     if (body.is_outbound === false) {
-      startRespondingToChat(body.content);
+      startRespondingToChat(body.from_number, body.content);
     }
 
     return new Response();
