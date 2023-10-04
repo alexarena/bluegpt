@@ -13,7 +13,8 @@ The following environment variables must be specified (you can use a .env file i
 - SENDBLUE_API_SECRET
 - OPENAI_API_KEY
 - SENDBLUE_SIGNING_SECRET
-- YOUR_NUMBER (Your phone number, w/ country code: eg. +15555555555)
+
+You may also specify an environment variable called `YOUR_NUMBER`. This is your phone number w/ country code: eg. +15555555555. BlueGPT will not accept messages from any number except `YOUR_NUMBER` when this value is provided.
 
 `deno run --watch --allow-net --allow-env --allow-read ./main.ts`
 
