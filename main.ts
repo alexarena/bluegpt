@@ -58,6 +58,8 @@ const chatHistory: ChatCompletionRequestMessage[] = [
   },
 ];
 
+let pendingChunk = "";
+
 async function startRespondingToChat(to: string, content: string) {
   await startTyping(to);
   chatHistory.push({
@@ -70,12 +72,21 @@ async function startRespondingToChat(to: string, content: string) {
     messages: chatHistory,
   });
   const stream = OpenAIStream(response, {
-    onToken: (token) => {
+    onToken: async (token) => {
       Deno.stdout.writeSync(new TextEncoder().encode(token));
+      pendingChunk += token;
+      if (pendingChunk.endsWith("\n")) {
+        await iMessage(to, pendingChunk);
+        await startTyping(to);
+        pendingChunk = "";
+      }
     },
     onCompletion: async (completion) => {
+      if (pendingChunk.length > 0) {
+        await iMessage(to, pendingChunk);
+        pendingChunk = "";
+      }
       chatHistory.push({ content: completion, role: "assistant" });
-      await iMessage(to, completion);
       console.log("\n");
       console.log(chatHistory);
     },
