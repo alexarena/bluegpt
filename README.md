@@ -20,4 +20,4 @@ You may also specify an environment variable called `YOUR_NUMBER`. This is your 
 
 ## Why?
 
-¯\_(ツ)\_/¯
+¯\\\_(ツ)\_/¯
